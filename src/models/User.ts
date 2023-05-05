@@ -8,6 +8,8 @@ export interface IUser extends Document {
   role: string;
   username: string;
   password: string;
+  passwordResetToken: string;
+    passwordResetExpires: Date
   comparePassword(candidatePassword: string): Promise<boolean>;
 }
 
@@ -18,6 +20,8 @@ const UserSchema: Schema = new Schema({
   role: { type: String, required: true, enum: ['admin', 'gcap', 'gtf'] },
   username: { type: String, required: true, unique: true },
   password: { type: String, required: true },
+  passwordResetToken: { type: String, default: null },
+  passwordResetExpires: { type: Date, default: null },
 });
 
 UserSchema.pre<IUser>('save', async function (next) {
