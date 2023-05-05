@@ -3,6 +3,18 @@ import Incident, { IIncident } from "../models/incidentModel";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
+import AWS from "aws-sdk";
+import dotenv from "dotenv";
+
+dotenv.config();
+
+// Set up AWS S3
+const s3 = new AWS.S3({
+  accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+});
+
+const BUCKET_NAME = "cmcdumspter";
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -18,6 +30,33 @@ const storage = multer.diskStorage({
 });
 
 const upload = multer({ storage });
+
+const uploadFileToS3 = (filePath: string, key: string): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    fs.readFile(filePath, (err: Error | null, data: Buffer) => {
+      if (err) {
+        return reject(err);
+      }
+
+      const params = {
+        Bucket: BUCKET_NAME,
+        Key: key,
+        Body: data,
+        ContentType: "image/jpeg", // Update the content type based on your image format
+      };
+
+      s3.upload(
+        params,
+        (err: Error | null, data: AWS.S3.ManagedUpload.SendData) => {
+          if (err) {
+            return reject(err);
+          }
+          resolve(data.Location);
+        }
+      );
+    });
+  });
+};
 
 export const createIncident = [
   upload.single("image"),
@@ -42,16 +81,62 @@ export const createIncident = [
       );
 
       fs.renameSync(savedIncident.imagePath, newImagePath);
-      savedIncident.imagePath = newImagePath;
+
+      // Upload the file to S3 and store the S3 URL as imagePath
+      const s3URL = await uploadFileToS3(
+        newImagePath,
+        path.basename(newImagePath)
+      );
+      savedIncident.imagePath = s3URL;
 
       await Incident.findByIdAndUpdate(savedIncident._id, savedIncident);
       res.status(201).json(savedIncident);
     } catch (error) {
       if (error instanceof Error) {
         res.status(500).json({ error: error.message });
+      }
+      // ...
+      if (error instanceof Error) {
+        res.status(500).json({ error: error.message });
       } else {
         res.status(500).json({ error: "An unknown error occurred." });
+      }
+    } finally {
+      // Clean up the local image file
+      if (req.file && fs.existsSync(req.file.path)) {
+        fs.unlinkSync(req.file.path);
       }
     }
   },
 ];
+
+// ... (the rest of your controller code)
+
+export const getIncidentById = async (req: Request, res: Response) => {
+  try {
+    const incident = await Incident.findById(req.params.id);
+    if (!incident) {
+      return res.status(404).json({ error: "Incident not found." });
+    }
+    res.status(200).json(incident);
+  } catch (error) {
+    if (error instanceof Error) {
+      res.status(500).json({ error: error.message });
+    } else {
+      res.status(500).json({ error: "An unknown error occurred." });
+    }
+  }
+};
+
+export const getAllIncidents = async (req: Request, res: Response) => {
+  try {
+    const incidents = await Incident.find();
+    res.status(200).json(incidents);
+  } catch (error) {
+    if (error instanceof Error) {
+      res.status(500).json({ error: error.message });
+    } else {
+      res.status(500).json({ error: "An unknown error occurred." });
+    }
+  }
+};
