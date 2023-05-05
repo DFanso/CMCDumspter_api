@@ -59,6 +59,21 @@ export const signIn = async (req: Request, res: Response,next: NextFunction) => 
       }
 };
 
+export const getUserProfile = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const user = await User.findById(req.body.id).select('-password'); // Exclude password from the result
+  
+      if (!user) {
+        return res.status(404).json({ message: 'User not found.' });
+      }
+  
+      res.status(200).json(user);
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: 'Error fetching user profile.' });
+    }
+  };
+  
 
 
 
