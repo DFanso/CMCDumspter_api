@@ -5,6 +5,7 @@ import crypto from 'crypto';
 import { sendEmail } from '../utils/mailer';
 
 
+
 const generateToken = (user: IUser): string => {
   return jwt.sign({ id: user._id, email: user.email }, process.env.JWT_SECRET!, {
     expiresIn: '1d',
@@ -77,6 +78,8 @@ export const getUserProfile = async (req: Request, res: Response, next: NextFunc
 
 
 
+
+
 export const forgotPassword = async (req: Request, res: Response, next: NextFunction) => {
   const { email } = req.body;
   try {
@@ -86,44 +89,50 @@ export const forgotPassword = async (req: Request, res: Response, next: NextFunc
       return next({ status: 404, message: 'User not found.' });
     }
 
-    const buffer = crypto.randomBytes(20);
-    const token = buffer.toString('hex');
+    const resetCode = crypto.randomBytes(4).toString('hex').toUpperCase();
 
-    user.passwordResetToken = token;
+    user.passwordResetToken = resetCode;
     user.passwordResetExpires = new Date(Date.now() + 3600000); // 1 hour
 
     await user.save();
 
-    const resetURL = `http://${req.headers.host}/api/auth/reset-password/${token}`;
-    const message = `You are receiving this email because you (or someone else) have requested the reset of the password for your account.\n\nPlease click on the following link, or paste this into your browser to complete the process within one hour of receiving it:\n\n${resetURL}\n\nIf you did not request this, please ignore this email and your password will remain unchanged.\n`;
+    const message = `
+    <h1>Password Reset</h1>
+    <p>You are receiving this email because you (or someone else) have requested the reset of the password for your account.</p>
+    <p>Please use the following code to reset your password within one hour of receiving it:</p>
+    <h2>${resetCode}</h2>
+    <p>If you did not request this, please ignore this email and your password will remain unchanged.</p>
+    `;
 
     await sendEmail(user.email, 'Password Reset', message);
 
     res.status(200).json({ message: 'Password reset email sent.' });
   } catch (error) {
+    console.error('Error sending the password reset email:', error);
     next({ status: 500, message: 'Error sending the password reset email.' });
   }
 };
 
 export const resetPassword = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const user = await User.findOne({
-        passwordResetToken: req.params.token,
-        passwordResetExpires: { $gt: Date.now() },
-      });
-  
-      if (!user) {
-        return next({ status: 400, message: 'Password reset token is invalid or has expired.' });
-      }
-  
-      user.password = req.body.password;
-      user.passwordResetToken = "" ;
-    user.passwordResetExpires = new Date();
-  
-      await user.save();
-  
-      res.status(200).json({ message: 'Password has been reset.' });
-    } catch (error) {
-      next({ status: 500, message: 'Error resetting the password.' });
+  const { resetCode, newPassword } = req.body;
+  try {
+    const user = await User.findOne({
+      passwordResetToken: resetCode,
+      passwordResetExpires: { $gt: Date.now() },
+    });
+
+    if (!user) {
+      return next({ status: 400, message: 'Password reset code is invalid or has expired.' });
     }
-  };
+
+    user.password = newPassword;
+    user.passwordResetToken = "";
+    user.passwordResetExpires = new Date();
+
+    await user.save();
+
+    res.status(200).json({ message: 'Password has been reset.' });
+  } catch (error) {
+    next({ status: 500, message: 'Error resetting the password.' });
+  }
+};
