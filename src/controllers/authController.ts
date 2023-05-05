@@ -62,7 +62,7 @@ export const signIn = async (req: Request, res: Response,next: NextFunction) => 
 
 export const getUserProfile = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const user = await User.findById(req.body.id).select('-password'); // Exclude password from the result
+        const user = await User.findById(req.body.id).select('-password -passwordResetToken -passwordResetExpires');
   
       if (!user) {
         return res.status(404).json({ message: 'User not found.' });
