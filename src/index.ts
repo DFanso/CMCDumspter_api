@@ -1,12 +1,12 @@
-import express from 'express';
-import * as mongoose from 'mongoose';
-import dotenv from 'dotenv';
-import cors from 'cors';
-import { errorMiddleware } from './middleware/errorMiddleware';
+import express from "express";
+import * as mongoose from "mongoose";
+import dotenv from "dotenv";
+import cors from "cors";
+import { errorMiddleware } from "./middleware/errorMiddleware";
 
-
-
-import authRoutes from './routes/auth';
+import authRoutes from "./routes/auth";
+import adminRoutes from "./routes/adminRoutes";
+import articleRoutes from "./routes/articleRoutes";
 // import userRoutes from './routes/user';
 // import reportRoutes from './routes/report';
 
@@ -15,14 +15,17 @@ dotenv.config();
 const app = express();
 
 mongoose
-  .connect(process.env.MONGODB_URI!, { retryWrites: true, w: 'majority' })
-  .then(() => console.log('Connected to MongoDB'))
-  .catch((error) => console.log('Error connecting to MongoDB:', error));
+  .connect(process.env.MONGODB_URI!, { retryWrites: true, w: "majority" })
+  .then(() => console.log("Connected to MongoDB"))
+  .catch((error) => console.log("Error connecting to MongoDB:", error));
 
 app.use(cors());
 app.use(express.json());
 
-app.use('/api/auth', authRoutes);
+app.use("/api/auth", authRoutes);
+app.use("/api/admin", adminRoutes);
+app.use("/api/article", articleRoutes);
+
 // app.use('/api/users', userRoutes);
 // app.use('/api/reports', reportRoutes);
 
