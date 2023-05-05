@@ -7,6 +7,7 @@ import { errorMiddleware } from "./middleware/errorMiddleware";
 import authRoutes from "./routes/auth";
 import adminRoutes from "./routes/adminRoutes";
 import articleRoutes from "./routes/articleRoutes";
+import incidentRoutes from "./routes/incidentRoutes";
 // import userRoutes from './routes/user';
 // import reportRoutes from './routes/report';
 
@@ -25,7 +26,7 @@ app.use(express.json());
 app.use("/api/auth", authRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/article", articleRoutes);
-
+app.use("/api/incident", incidentRoutes);
 // app.use('/api/users', userRoutes);
 // app.use('/api/reports', reportRoutes);
 
