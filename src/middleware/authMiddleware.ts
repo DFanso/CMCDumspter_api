@@ -40,6 +40,8 @@ export const authMiddleware = (
   try {
     const payload = jwt.verify(token, process.env.JWT_SECRET!) as UserPayload;
     req.currentUser = payload;
+    console.log(payload.id)
+    req.body.id = payload.id
     next();
   } catch (err) {
     return next({ status: 401, message: "Invalid token." });
