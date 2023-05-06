@@ -1,27 +1,4 @@
 "use strict";
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -62,45 +39,43 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-var mongoose_1 = __importStar(require("mongoose"));
-var bcrypt_1 = __importDefault(require("bcrypt"));
-var UserSchema = new mongoose_1.Schema({
-    name: { type: String, required: true },
-    contactNumber: { type: String, required: true },
-    email: { type: String, required: true, unique: true },
-    role: { type: String, required: true, enum: ['admin', 'gcap', 'gtf'] },
-    username: { type: String, required: true, unique: true },
-    password: { type: String, required: true },
-    passwordResetToken: { type: String, default: null },
-    passwordResetExpires: { type: Date, default: null },
-});
-UserSchema.pre('save', function (next) {
-    return __awaiter(this, void 0, void 0, function () {
-        var salt, _a;
-        return __generator(this, function (_b) {
-            switch (_b.label) {
-                case 0:
-                    if (!this.isModified('password')) return [3 /*break*/, 3];
-                    return [4 /*yield*/, bcrypt_1.default.genSalt(10)];
-                case 1:
-                    salt = _b.sent();
-                    _a = this;
-                    return [4 /*yield*/, bcrypt_1.default.hash(this.password, salt)];
-                case 2:
-                    _a.password = _b.sent();
-                    _b.label = 3;
-                case 3:
-                    next();
+exports.addArticle = void 0;
+var articaleModel_1 = __importDefault(require("../models/articaleModel"));
+var User_1 = __importDefault(require("../models/User"));
+var addArticle = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var _a, title, body, currentUser, authorId, author, newArticle, error_1;
+    var _b, _c;
+    return __generator(this, function (_d) {
+        switch (_d.label) {
+            case 0:
+                _d.trys.push([0, 3, , 4]);
+                _a = req.body, title = _a.title, body = _a.body, currentUser = _a.currentUser;
+                authorId = (_b = req.currentUser) === null || _b === void 0 ? void 0 : _b.id;
+                return [4 /*yield*/, User_1.default.findById(authorId)];
+            case 1:
+                author = _d.sent();
+                if (!author) {
+                    res.status(404).json({ message: "Author not found" });
                     return [2 /*return*/];
-            }
-        });
+                }
+                newArticle = new articaleModel_1.default({
+                    title: title,
+                    body: body,
+                    author: (_c = author === null || author === void 0 ? void 0 : author.name) !== null && _c !== void 0 ? _c : "",
+                });
+                return [4 /*yield*/, newArticle.save()];
+            case 2:
+                _d.sent();
+                res
+                    .status(201)
+                    .json({ message: "Article added successfully", data: newArticle });
+                return [3 /*break*/, 4];
+            case 3:
+                error_1 = _d.sent();
+                res.status(500).json({ message: "Error adding article", error: error_1 });
+                return [3 /*break*/, 4];
+            case 4: return [2 /*return*/];
+        }
     });
-});
-UserSchema.methods.comparePassword = function (candidatePassword) {
-    return __awaiter(this, void 0, void 0, function () {
-        return __generator(this, function (_a) {
-            return [2 /*return*/, bcrypt_1.default.compare(candidatePassword, this.password)];
-        });
-    });
-};
-exports.default = mongoose_1.default.model('User', UserSchema);
+}); };
+exports.addArticle = addArticle;

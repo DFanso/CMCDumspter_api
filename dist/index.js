@@ -30,20 +30,30 @@ var express_1 = __importDefault(require("express"));
 var mongoose = __importStar(require("mongoose"));
 var dotenv_1 = __importDefault(require("dotenv"));
 var cors_1 = __importDefault(require("cors"));
+var path_1 = __importDefault(require("path"));
+var errorMiddleware_1 = require("./middleware/errorMiddleware");
 var auth_1 = __importDefault(require("./routes/auth"));
+var adminRoutes_1 = __importDefault(require("./routes/adminRoutes"));
+var articleRoutes_1 = __importDefault(require("./routes/articleRoutes"));
+var incidentRoutes_1 = __importDefault(require("./routes/incidentRoutes"));
 // import userRoutes from './routes/user';
 // import reportRoutes from './routes/report';
 dotenv_1.default.config();
 var app = (0, express_1.default)();
 mongoose
-    .connect(process.env.MONGODB_URI, { retryWrites: true, w: 'majority' })
-    .then(function () { return console.log('Connected to MongoDB'); })
-    .catch(function (error) { return console.log('Error connecting to MongoDB:', error); });
+    .connect(process.env.MONGODB_URI, { retryWrites: true, w: "majority" })
+    .then(function () { return console.log("Connected to MongoDB"); })
+    .catch(function (error) { return console.log("Error connecting to MongoDB:", error); });
 app.use((0, cors_1.default)());
 app.use(express_1.default.json());
-app.use('/api/auth', auth_1.default);
+app.use("/images", express_1.default.static(path_1.default.join(__dirname, "images")));
+app.use("/api/auth", auth_1.default);
+app.use("/api/admin", adminRoutes_1.default);
+app.use("/api/article", articleRoutes_1.default);
+app.use("/api/incident", incidentRoutes_1.default);
 // app.use('/api/users', userRoutes);
 // app.use('/api/reports', reportRoutes);
+app.use(errorMiddleware_1.errorMiddleware);
 var port = process.env.PORT || 3000;
 app.listen(port, function () {
     console.log("Server running at http://localhost:".concat(port));

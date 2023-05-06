@@ -39,27 +39,30 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.signIn = exports.signUp = void 0;
+exports.resetPassword = exports.forgotPassword = exports.getUserProfile = exports.signIn = exports.signUp = void 0;
 var User_1 = __importDefault(require("../models/User"));
 var jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
+var crypto_1 = __importDefault(require("crypto"));
+var mailer_1 = require("../utils/mailer");
 var generateToken = function (user) {
     return jsonwebtoken_1.default.sign({ id: user._id, email: user.email }, process.env.JWT_SECRET, {
         expiresIn: '1d',
     });
 };
-var signUp = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, name, contactNumber, email, role, username, password, existingUser, newUser;
+var signUp = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
+    var _a, name_1, contactNumber, email, role, username, password, existingUser, newUser, err_1;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
-                _a = req.body, name = _a.name, contactNumber = _a.contactNumber, email = _a.email, role = _a.role, username = _a.username, password = _a.password;
+                _b.trys.push([0, 3, , 4]);
+                _a = req.body, name_1 = _a.name, contactNumber = _a.contactNumber, email = _a.email, role = _a.role, username = _a.username, password = _a.password;
                 return [4 /*yield*/, User_1.default.findOne({ email: email })];
             case 1:
                 existingUser = _b.sent();
                 if (existingUser) {
                     return [2 /*return*/, res.status(400).json({ message: 'Email is already in use.' })];
                 }
-                newUser = new User_1.default({ name: name, contactNumber: contactNumber, email: email, role: role, username: username, password: password });
+                newUser = new User_1.default({ name: name_1, contactNumber: contactNumber, email: email, role: role, username: username, password: password });
                 return [4 /*yield*/, newUser.save()];
             case 2:
                 _b.sent();
@@ -67,16 +70,22 @@ var signUp = function (req, res) { return __awaiter(void 0, void 0, void 0, func
                     message: 'User created successfully',
                     token: generateToken(newUser),
                 });
-                return [2 /*return*/];
+                return [3 /*break*/, 4];
+            case 3:
+                err_1 = _b.sent();
+                next({ status: 400, message: 'Error during signup.' });
+                return [3 /*break*/, 4];
+            case 4: return [2 /*return*/];
         }
     });
 }); };
 exports.signUp = signUp;
-var signIn = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, username, password, user, isMatch;
+var signIn = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
+    var _a, username, password, user, isMatch, err_2;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
+                _b.trys.push([0, 3, , 4]);
                 _a = req.body, username = _a.username, password = _a.password;
                 return [4 /*yield*/, User_1.default.findOne({ username: username })];
             case 1:
@@ -94,8 +103,109 @@ var signIn = function (req, res) { return __awaiter(void 0, void 0, void 0, func
                     message: 'Logged in successfully',
                     token: generateToken(user),
                 });
-                return [2 /*return*/];
+                return [3 /*break*/, 4];
+            case 3:
+                err_2 = _b.sent();
+                next({ status: 400, message: 'Error during signin.' });
+                return [3 /*break*/, 4];
+            case 4: return [2 /*return*/];
         }
     });
 }); };
 exports.signIn = signIn;
+var getUserProfile = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
+    var user, error_1;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                _a.trys.push([0, 2, , 3]);
+                return [4 /*yield*/, User_1.default.findById(req.body.id).select('-password -passwordResetToken -passwordResetExpires')];
+            case 1:
+                user = _a.sent();
+                if (!user) {
+                    return [2 /*return*/, res.status(404).json({ message: 'User not found.' })];
+                }
+                res.status(200).json(user);
+                return [3 /*break*/, 3];
+            case 2:
+                error_1 = _a.sent();
+                console.error(error_1);
+                res.status(500).json({ message: 'Error fetching user profile.' });
+                return [3 /*break*/, 3];
+            case 3: return [2 /*return*/];
+        }
+    });
+}); };
+exports.getUserProfile = getUserProfile;
+var forgotPassword = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
+    var email, user, resetCode, message, error_2;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                email = req.body.email;
+                _a.label = 1;
+            case 1:
+                _a.trys.push([1, 5, , 6]);
+                return [4 /*yield*/, User_1.default.findOne({ email: email })];
+            case 2:
+                user = _a.sent();
+                if (!user) {
+                    return [2 /*return*/, next({ status: 404, message: 'User not found.' })];
+                }
+                resetCode = crypto_1.default.randomBytes(4).toString('hex').toUpperCase();
+                user.passwordResetToken = resetCode;
+                user.passwordResetExpires = new Date(Date.now() + 3600000); // 1 hour
+                return [4 /*yield*/, user.save()];
+            case 3:
+                _a.sent();
+                message = "\n    <h1>Password Reset</h1>\n    <p>You are receiving this email because you (or someone else) have requested the reset of the password for your account.</p>\n    <p>Please use the following code to reset your password within one hour of receiving it:</p>\n    <h2>".concat(resetCode, "</h2>\n    <p>If you did not request this, please ignore this email and your password will remain unchanged.</p>\n    ");
+                return [4 /*yield*/, (0, mailer_1.sendEmail)(user.email, 'Password Reset', message)];
+            case 4:
+                _a.sent();
+                res.status(200).json({ message: 'Password reset email sent.' });
+                return [3 /*break*/, 6];
+            case 5:
+                error_2 = _a.sent();
+                console.error('Error sending the password reset email:', error_2);
+                next({ status: 500, message: 'Error sending the password reset email.' });
+                return [3 /*break*/, 6];
+            case 6: return [2 /*return*/];
+        }
+    });
+}); };
+exports.forgotPassword = forgotPassword;
+var resetPassword = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
+    var _a, resetCode, newPassword, user, error_3;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
+            case 0:
+                _a = req.body, resetCode = _a.resetCode, newPassword = _a.newPassword;
+                _b.label = 1;
+            case 1:
+                _b.trys.push([1, 4, , 5]);
+                return [4 /*yield*/, User_1.default.findOne({
+                        passwordResetToken: resetCode,
+                        passwordResetExpires: { $gt: Date.now() },
+                    })];
+            case 2:
+                user = _b.sent();
+                if (!user) {
+                    return [2 /*return*/, next({ status: 400, message: 'Password reset code is invalid or has expired.' })];
+                }
+                user.password = newPassword;
+                user.passwordResetToken = "";
+                user.passwordResetExpires = new Date();
+                return [4 /*yield*/, user.save()];
+            case 3:
+                _b.sent();
+                res.status(200).json({ message: 'Password has been reset.' });
+                return [3 /*break*/, 5];
+            case 4:
+                error_3 = _b.sent();
+                next({ status: 500, message: 'Error resetting the password.' });
+                return [3 /*break*/, 5];
+            case 5: return [2 /*return*/];
+        }
+    });
+}); };
+exports.resetPassword = resetPassword;

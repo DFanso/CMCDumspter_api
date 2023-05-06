@@ -10,8 +10,6 @@ import authRoutes from "./routes/auth";
 import adminRoutes from "./routes/adminRoutes";
 import articleRoutes from "./routes/articleRoutes";
 import incidentRoutes from "./routes/incidentRoutes";
-// import userRoutes from './routes/user';
-// import reportRoutes from './routes/report';
 
 dotenv.config();
 
@@ -30,12 +28,10 @@ app.use("/api/auth", authRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/article", articleRoutes);
 app.use("/api/incident", incidentRoutes);
-// app.use('/api/users', userRoutes);
-// app.use('/api/reports', reportRoutes);
 
 app.use(errorMiddleware);
 
-const port = process.env.PORT || 3000;
+const port = process.env.PORT;
 app.listen(port, () => {
-  console.log(`Server running at http://localhost:${port}`);
+  console.log(`Server running at ${port}`);
 });
