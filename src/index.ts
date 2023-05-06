@@ -16,7 +16,7 @@ import incidentRoutes from "./routes/incidentRoutes";
 dotenv.config();
 
 const app = express();
-
+app.use(express.json());
 mongoose
   .connect(process.env.MONGODB_URI!, { retryWrites: true, w: "majority" })
   .then(() => console.log("Connected to MongoDB"))
