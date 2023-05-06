@@ -127,16 +127,109 @@ export const getIncidentById = async (req: Request, res: Response) => {
     }
   }
 };
-
-export const getAllIncidents = async (req: Request, res: Response) => {
+export const getAllIncidents = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   try {
-    const incidents = await Incident.find();
-    res.status(200).json(incidents);
-  } catch (error) {
-    if (error instanceof Error) {
-      res.status(500).json({ error: error.message });
+    const { user } = req.body;
+    let incidents;
+
+    if (user === "admin" || user === "green_captain" || user === "GTF_Member") {
+      if (user === "GTF_Member") {
+        incidents = await Incident.find({ status: true });
+      } else {
+        incidents = await Incident.find({});
+      }
+      res.status(200).json({ incidents });
     } else {
-      res.status(500).json({ error: "An unknown error occurred." });
+      res.status(401).json({ message: "Unauthorized access" });
     }
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching incidents", error });
+  }
+};
+export const deleteIncidentByID = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    let id = req.body.incidentID;
+    if (!id) {
+      res.status(400).json({ message: "No document ID provided." });
+      return;
+    }
+
+    const incident = await Incident.findByIdAndDelete(id);
+
+    if (!incident) {
+      res.status(404).json({ message: "Incident not found." });
+      return;
+    }
+
+    res
+      .status(200)
+      .json({ message: "Incident deleted successfully.", data: incident });
+  } catch (error) {
+    res.status(500).json({
+      message: "An error occurred while deleting the incident.",
+      error,
+    });
+  }
+};
+export const updateIncidentStatus = async (req: Request, res: Response) => {
+  const incidentID = req.body.incidentID;
+
+  if (!incidentID) {
+    return res.status(400).json({ message: "incidentID is required" });
+  }
+
+  try {
+    const incident = await Incident.findByIdAndUpdate(
+      incidentID,
+      { status: true },
+      { new: true, runValidators: true }
+    );
+
+    if (!incident) {
+      return res.status(404).json({ message: "Incident not found" });
+    }
+
+    res
+      .status(200)
+      .json({ message: "Incident status updated successfully", incident });
+  } catch (error) {
+    res.status(500).json({ message: "Error updating incident status", error });
+  }
+};
+export const updateIncidentFlag = async (req: Request, res: Response) => {
+  const { incidentID, flag } = req.body;
+
+  if (!incidentID) {
+    return res.status(400).json({ message: "incidentID is required" });
+  }
+
+  if (!flag || !["green", "red"].includes(flag)) {
+    return res
+      .status(400)
+      .json({ message: "Valid flag value ('green' or 'red') is required" });
+  }
+
+  try {
+    const updateData = { flag };
+    const incident = await Incident.findByIdAndUpdate(incidentID, updateData, {
+      new: true,
+      runValidators: true,
+    });
+
+    if (!incident) {
+      return res.status(404).json({ message: "Incident not found" });
+    }
+
+    res
+      .status(200)
+      .json({ message: "Incident updated successfully", incident });
+  } catch (error) {
+    res.status(500).json({ message: "Error updating incident", error });
   }
 };

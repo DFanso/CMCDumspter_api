@@ -6,6 +6,7 @@ export interface IIncident extends Document {
   address: string;
   description: string;
   imagePath: string;
+  flag: string;
 }
 
 const IncidentSchema: Schema = new Schema({
@@ -13,6 +14,8 @@ const IncidentSchema: Schema = new Schema({
   address: { type: String, required: true },
   description: { type: String, required: true },
   imagePath: { type: String, required: true },
+  flag: { type: String, enum: ["green", "red"], default: "green" },
+  status: { type: Boolean, default: false },
 });
 
 export default mongoose.model<IIncident>("Incident", IncidentSchema);
