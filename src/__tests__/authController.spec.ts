@@ -3,6 +3,7 @@ import { app } from '../index'; // You should export your app instance from your
 import User from '../models/User';
 import jwt from 'jsonwebtoken';
 import { sendEmail } from '../utils/mailer';
+import crypto from 'crypto';
 
 
 jest.mock('../utils/mailer', () => ({
@@ -188,6 +189,63 @@ describe('User Controller', () => {
   
     expect(response.status).toBe(404);
     expect(response.body.error.message).toBe('User not found.');
+  });
+
+  //password reset tests
+
+  test('Should reset the password for an existing user with a valid reset code', async () => {
+    // Create a user
+    const existingUser = new User({
+      name: 'Existing User',
+      contactNumber: '0987654321',
+      email: 'test@example.com',
+      role: 'admin',
+      username: 'existinguser',
+      password: 'existingpassword',
+    });
+
+    // Set a password reset token and expiration date
+    const resetCode = crypto.randomBytes(4).toString('hex').toUpperCase();
+    existingUser.passwordResetToken = resetCode;
+    existingUser.passwordResetExpires = new Date(Date.now() + 3600000); // 1 hour
+    await existingUser.save();
+
+    const newPassword = 'newpassword';
+    const response = await request(app).post('/api/auth/reset-password').send({
+      resetCode,
+      newPassword,
+    });
+
+    // Check if the password has been reset
+    const updatedUser = await User.findById(existingUser._id);
+    const isMatch = await updatedUser!.comparePassword(newPassword);
+
+    expect(response.status).toBe(200);
+    expect(response.body.message).toBe('Password has been reset.');
+    expect(isMatch).toBe(true);
+  });
+
+  test('Should not reset the password for an existing user with an invalid or expired reset code', async () => {
+    // Create a user
+    const existingUser = new User({
+      name: 'Existing User',
+      contactNumber: '0987654321',
+      email: 'test@example.com',
+      role: 'admin',
+      username: 'existinguser',
+      password: 'existingpassword',
+    });
+    await existingUser.save();
+
+    const invalidResetCode = 'INVALID';
+    const newPassword = 'newpassword';
+    const response = await request(app).post('/api/auth/reset-password').send({
+      resetCode: invalidResetCode,
+      newPassword,
+    });
+
+    expect(response.status).toBe(400);
+    expect(response.body.error.message).toBe('Password reset code is invalid or has expired.');
   });
 
   // You can write additional tests for other controller functions like signIn, getUserProfile, forgotPassword, and resetPassword
