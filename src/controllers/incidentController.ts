@@ -110,7 +110,6 @@ export const createIncident = [
   },
 ];
 
-// ... (the rest of your controller code)
 
 export const getIncidentById = async (req: Request, res: Response) => {
   try {
