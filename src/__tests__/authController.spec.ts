@@ -4,11 +4,21 @@ import User from '../models/User';
 import jwt from 'jsonwebtoken';
 import { sendEmail } from '../utils/mailer';
 import crypto from 'crypto';
-
+import server from '../index';
 
 jest.mock('../utils/mailer', () => ({
   sendEmail: jest.fn(),
 }));
+
+// Start the server before all tests
+beforeAll(async () => {
+  await server;
+});
+
+// Close the server after all tests
+afterAll(async () => {
+  await server.close();
+});
 
 // Make sure to clear the database before each test
 beforeEach(async () => {
@@ -248,7 +258,5 @@ describe('User Controller', () => {
     expect(response.body.error.message).toBe('Password reset code is invalid or has expired.');
   });
 
-  // You can write additional tests for other controller functions like signIn, getUserProfile, forgotPassword, and resetPassword
-  // ...
 });
 
