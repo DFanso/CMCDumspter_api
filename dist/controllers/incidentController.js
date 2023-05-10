@@ -39,7 +39,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getAllIncidents = exports.getIncidentById = exports.createIncident = void 0;
+exports.updateIncidentFlag = exports.updateIncidentStatus = exports.deleteIncidentByID = exports.getAllIncidents = exports.getIncidentById = exports.createIncident = void 0;
 var incidentModel_1 = __importDefault(require("../models/incidentModel"));
 var multer_1 = __importDefault(require("multer"));
 var path_1 = __importDefault(require("path"));
@@ -173,27 +173,141 @@ var getIncidentById = function (req, res) { return __awaiter(void 0, void 0, voi
 }); };
 exports.getIncidentById = getIncidentById;
 var getAllIncidents = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var incidents, error_3;
+    var user, incidents, error_3;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                _a.trys.push([0, 7, , 8]);
+                user = req.body.user;
+                incidents = void 0;
+                if (!(user === "admin" || user === "green_captain" || user === "GTF_Member")) return [3 /*break*/, 5];
+                if (!(user === "GTF_Member")) return [3 /*break*/, 2];
+                return [4 /*yield*/, incidentModel_1.default.find({ status: true })];
+            case 1:
+                incidents = _a.sent();
+                return [3 /*break*/, 4];
+            case 2: return [4 /*yield*/, incidentModel_1.default.find({})];
+            case 3:
+                incidents = _a.sent();
+                _a.label = 4;
+            case 4:
+                res.status(200).json({ incidents: incidents });
+                return [3 /*break*/, 6];
+            case 5:
+                res.status(401).json({ message: "Unauthorized access" });
+                _a.label = 6;
+            case 6: return [3 /*break*/, 8];
+            case 7:
+                error_3 = _a.sent();
+                res.status(500).json({ message: "Error fetching incidents", error: error_3 });
+                return [3 /*break*/, 8];
+            case 8: return [2 /*return*/];
+        }
+    });
+}); };
+exports.getAllIncidents = getAllIncidents;
+var deleteIncidentByID = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var id, incident, error_4;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
                 _a.trys.push([0, 2, , 3]);
-                return [4 /*yield*/, incidentModel_1.default.find()];
+                id = req.body.incidentID;
+                if (!id) {
+                    res.status(400).json({ message: "No document ID provided." });
+                    return [2 /*return*/];
+                }
+                return [4 /*yield*/, incidentModel_1.default.findByIdAndDelete(id)];
             case 1:
-                incidents = _a.sent();
-                res.status(200).json(incidents);
+                incident = _a.sent();
+                if (!incident) {
+                    res.status(404).json({ message: "Incident not found." });
+                    return [2 /*return*/];
+                }
+                res
+                    .status(200)
+                    .json({ message: "Incident deleted successfully.", data: incident });
                 return [3 /*break*/, 3];
             case 2:
-                error_3 = _a.sent();
-                if (error_3 instanceof Error) {
-                    res.status(500).json({ error: error_3.message });
-                }
-                else {
-                    res.status(500).json({ error: "An unknown error occurred." });
-                }
+                error_4 = _a.sent();
+                res.status(500).json({
+                    message: "An error occurred while deleting the incident.",
+                    error: error_4,
+                });
                 return [3 /*break*/, 3];
             case 3: return [2 /*return*/];
         }
     });
 }); };
-exports.getAllIncidents = getAllIncidents;
+exports.deleteIncidentByID = deleteIncidentByID;
+var updateIncidentStatus = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var incidentID, incident, error_5;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                incidentID = req.body.incidentID;
+                if (!incidentID) {
+                    return [2 /*return*/, res.status(400).json({ message: "incidentID is required" })];
+                }
+                _a.label = 1;
+            case 1:
+                _a.trys.push([1, 3, , 4]);
+                return [4 /*yield*/, incidentModel_1.default.findByIdAndUpdate(incidentID, { status: true }, { new: true, runValidators: true })];
+            case 2:
+                incident = _a.sent();
+                if (!incident) {
+                    return [2 /*return*/, res.status(404).json({ message: "Incident not found" })];
+                }
+                res
+                    .status(200)
+                    .json({ message: "Incident status updated successfully", incident: incident });
+                return [3 /*break*/, 4];
+            case 3:
+                error_5 = _a.sent();
+                res.status(500).json({ message: "Error updating incident status", error: error_5 });
+                return [3 /*break*/, 4];
+            case 4: return [2 /*return*/];
+        }
+    });
+}); };
+exports.updateIncidentStatus = updateIncidentStatus;
+var updateIncidentFlag = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var _a, incidentID, flag, updateData, incident, error_6;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
+            case 0:
+                _a = req.body, incidentID = _a.incidentID, flag = _a.flag;
+                if (!incidentID) {
+                    return [2 /*return*/, res.status(400).json({ message: "incidentID is required" })];
+                }
+                if (!flag || !["green", "red"].includes(flag)) {
+                    return [2 /*return*/, res
+                            .status(400)
+                            .json({ message: "Valid flag value ('green' or 'red') is required" })];
+                }
+                _b.label = 1;
+            case 1:
+                _b.trys.push([1, 3, , 4]);
+                updateData = { flag: flag };
+                return [4 /*yield*/, incidentModel_1.default.findByIdAndUpdate(incidentID, updateData, {
+                        new: true,
+                        runValidators: true,
+                    })];
+            case 2:
+                incident = _b.sent();
+                if (!incident) {
+                    return [2 /*return*/, res.status(404).json({ message: "Incident not found" })];
+                }
+                res
+                    .status(200)
+                    .json({ message: "Incident updated successfully", incident: incident });
+                return [3 /*break*/, 4];
+            case 3:
+                error_6 = _b.sent();
+                res.status(500).json({ message: "Error updating incident", error: error_6 });
+                return [3 /*break*/, 4];
+            case 4: return [2 /*return*/];
+        }
+    });
+}); };
+exports.updateIncidentFlag = updateIncidentFlag;

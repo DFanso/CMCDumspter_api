@@ -30,5 +30,7 @@ var IncidentSchema = new mongoose_1.Schema({
     address: { type: String, required: true },
     description: { type: String, required: true },
     imagePath: { type: String, required: true },
+    flag: { type: String, enum: ["green", "red"], default: "green" },
+    status: { type: Boolean, default: false },
 });
 exports.default = mongoose_1.default.model("Incident", IncidentSchema);
