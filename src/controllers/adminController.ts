@@ -10,6 +10,11 @@ export const addArticle = async (
     const { title, body, currentUser } = req.body;
     const authorId = req.currentUser?.id;
 
+    if (!authorId) {
+      res.status(404).json({ message: "Author not found" });
+      return;
+    }
+
     const author: IUser | null = await User.findById(authorId);
     if (!author) {
       res.status(404).json({ message: "Author not found" });
@@ -30,3 +35,4 @@ export const addArticle = async (
     res.status(500).json({ message: "Error adding article", error });
   }
 };
+
