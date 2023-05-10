@@ -62,7 +62,7 @@ export const createIncident = [
   upload.single("image"),
   async (req: Request, res: Response) => {
     try {
-      const { name, address, description } = req.body;
+      const { name, address, description, lat, long } = req.body;
       if (!req.file) {
         return res.status(400).json({ error: "No image file provided." });
       }
@@ -71,6 +71,8 @@ export const createIncident = [
         name,
         address,
         description,
+        lat,
+        long,
         imagePath: req.file.path,
       });
 
@@ -109,7 +111,6 @@ export const createIncident = [
     }
   },
 ];
-
 
 export const getIncidentById = async (req: Request, res: Response) => {
   try {
