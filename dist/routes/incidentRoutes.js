@@ -9,5 +9,8 @@ var authMiddleware_1 = require("../middleware/authMiddleware");
 var router = express_1.default.Router();
 router.post("/createIncident", authMiddleware_1.authMiddleware, incidentController_1.createIncident);
 router.get("/getAllIncidents", authMiddleware_1.authMiddleware, incidentController_1.getAllIncidents);
+router.delete("/deleteIncidentByID", authMiddleware_1.authMiddleware, incidentController_1.deleteIncidentByID);
+router.patch("/updateIncidentStatus", authMiddleware_1.authMiddleware, incidentController_1.updateIncidentStatus);
+router.patch("/updateIncidentFlag", authMiddleware_1.authMiddleware, incidentController_1.updateIncidentFlag);
 router.get("/:id", authMiddleware_1.authMiddleware, incidentController_1.getIncidentById);
 exports.default = router;
