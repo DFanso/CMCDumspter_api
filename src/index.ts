@@ -32,8 +32,9 @@ app.use("/api/incident", incidentRoutes);
 app.use(errorMiddleware);
 
 const port = process.env.PORT;
-app.listen(port, () => {
+const server = app.listen(port, () => {
   console.log(`Server running at ${port}`);
 });
 
-export { app };
+export  { app,server };
+export default server;
