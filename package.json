@@ -7,9 +7,11 @@
     "start": "node src/index.ts",
     "dev": "nodemon src/index.ts",
     "build": "tsc",
-    "test": "jest"
+    "test": "jest",
+    "test all": "jest src/__test__/**"
+
   },
-  "author": "",
+  "author": "DFanso",
   "license": "ISC",
   "devDependencies": {
     "@types/bcrypt": "^5.0.0",
