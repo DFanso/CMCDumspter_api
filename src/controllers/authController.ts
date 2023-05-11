@@ -37,12 +37,17 @@ export const signUp = async (req: Request, res: Response,next: NextFunction) => 
 
 export const signIn = async (req: Request, res: Response,next: NextFunction) => {
     try {
-  const { username, password } = req.body;
+  const { username, password ,role} = req.body;
 
   const user = await User.findOne({ username });
 
+  
+
   if (!user) {
     return res.status(400).json({ message: 'Invalid username or password.' });
+  }
+  if (role !== user?.role) {
+    return res.status(400).json({ message: 'Invalid role SignIn' });
   }
 
   const isMatch = await user.comparePassword(password);
