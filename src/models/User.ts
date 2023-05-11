@@ -20,6 +20,7 @@ const UserSchema: Schema = new Schema({
   role: { type: String, required: true, enum: ['admin', 'gcap', 'gtf'] },
   username: { type: String, required: true, unique: true },
   password: { type: String, required: true },
+  address: { type: String, required: true },
   passwordResetToken: { type: String, default: null },
   passwordResetExpires: { type: Date, default: null },
 });
