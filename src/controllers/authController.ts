@@ -14,7 +14,7 @@ const generateToken = (user: IUser): string => {
 
 export const signUp = async (req: Request, res: Response,next: NextFunction) => {
     try {
-  const { name, contactNumber, email, role, username, password } = req.body;
+  const { name, contactNumber, email, role, username, password, address } = req.body;
 
   const existingUser = await User.findOne({ email });
 
@@ -22,7 +22,7 @@ export const signUp = async (req: Request, res: Response,next: NextFunction) => 
     return res.status(400).json({ message: 'Email is already in use.' });
   }
 
-  const newUser = new User({ name, contactNumber, email, role, username, password });
+  const newUser = new User({ name, contactNumber, email, role, username, password,address });
 
   await newUser.save();
 
