@@ -1,5 +1,5 @@
 import request from 'supertest';
-import { app } from '../index'; // You should export your app instance from your main application file
+import { app } from '../index'; 
 import Article from '../models/articaleModel';
 import User from '../models/User';
 import jwt from 'jsonwebtoken';
