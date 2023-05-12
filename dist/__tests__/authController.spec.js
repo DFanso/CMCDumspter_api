@@ -45,8 +45,31 @@ var User_1 = __importDefault(require("../models/User"));
 var jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 var mailer_1 = require("../utils/mailer");
 var crypto_1 = __importDefault(require("crypto"));
+var index_2 = __importDefault(require("../index"));
 jest.mock('../utils/mailer', function () { return ({
     sendEmail: jest.fn(),
+}); });
+// Start the server before all tests
+beforeAll(function () { return __awaiter(void 0, void 0, void 0, function () {
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0: return [4 /*yield*/, index_2.default];
+            case 1:
+                _a.sent();
+                return [2 /*return*/];
+        }
+    });
+}); });
+// Close the server after all tests
+afterAll(function () { return __awaiter(void 0, void 0, void 0, function () {
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0: return [4 /*yield*/, index_2.default.close()];
+            case 1:
+                _a.sent();
+                return [2 /*return*/];
+        }
+    });
 }); });
 // Make sure to clear the database before each test
 beforeEach(function () { return __awaiter(void 0, void 0, void 0, function () {
@@ -355,6 +378,4 @@ describe('User Controller', function () {
             }
         });
     }); });
-    // You can write additional tests for other controller functions like signIn, getUserProfile, forgotPassword, and resetPassword
-    // ...
 });
