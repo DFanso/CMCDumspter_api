@@ -6,10 +6,10 @@
   "scripts": {
     "start": "node src/index.ts",
     "dev": "nodemon src/index.ts",
+    "prebuild": "npm install typescript",
     "build": "tsc",
     "test": "jest",
     "test all": "jest src/__test__/**"
-
   },
   "author": "DFanso",
   "license": "ISC",

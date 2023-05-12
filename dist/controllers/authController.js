@@ -50,19 +50,19 @@ var generateToken = function (user) {
     });
 };
 var signUp = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, name_1, contactNumber, email, role, username, password, existingUser, newUser, err_1;
+    var _a, name_1, contactNumber, email, role, username, password, address, existingUser, newUser, err_1;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
                 _b.trys.push([0, 3, , 4]);
-                _a = req.body, name_1 = _a.name, contactNumber = _a.contactNumber, email = _a.email, role = _a.role, username = _a.username, password = _a.password;
+                _a = req.body, name_1 = _a.name, contactNumber = _a.contactNumber, email = _a.email, role = _a.role, username = _a.username, password = _a.password, address = _a.address;
                 return [4 /*yield*/, User_1.default.findOne({ email: email })];
             case 1:
                 existingUser = _b.sent();
                 if (existingUser) {
                     return [2 /*return*/, res.status(400).json({ message: 'Email is already in use.' })];
                 }
-                newUser = new User_1.default({ name: name_1, contactNumber: contactNumber, email: email, role: role, username: username, password: password });
+                newUser = new User_1.default({ name: name_1, contactNumber: contactNumber, email: email, role: role, username: username, password: password, address: address });
                 return [4 /*yield*/, newUser.save()];
             case 2:
                 _b.sent();
@@ -81,17 +81,20 @@ var signUp = function (req, res, next) { return __awaiter(void 0, void 0, void 0
 }); };
 exports.signUp = signUp;
 var signIn = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, username, password, user, isMatch, err_2;
+    var _a, username, password, role, user, isMatch, err_2;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
                 _b.trys.push([0, 3, , 4]);
-                _a = req.body, username = _a.username, password = _a.password;
+                _a = req.body, username = _a.username, password = _a.password, role = _a.role;
                 return [4 /*yield*/, User_1.default.findOne({ username: username })];
             case 1:
                 user = _b.sent();
                 if (!user) {
                     return [2 /*return*/, res.status(400).json({ message: 'Invalid username or password.' })];
+                }
+                if (role !== (user === null || user === void 0 ? void 0 : user.role)) {
+                    return [2 /*return*/, res.status(400).json({ message: 'Invalid role SignIn' })];
                 }
                 return [4 /*yield*/, user.comparePassword(password)];
             case 2:

@@ -51,6 +51,10 @@ var addArticle = function (req, res) { return __awaiter(void 0, void 0, void 0, 
                 _d.trys.push([0, 3, , 4]);
                 _a = req.body, title = _a.title, body = _a.body, currentUser = _a.currentUser;
                 authorId = (_b = req.currentUser) === null || _b === void 0 ? void 0 : _b.id;
+                if (!authorId) {
+                    res.status(404).json({ message: "Author not found" });
+                    return [2 /*return*/];
+                }
                 return [4 /*yield*/, User_1.default.findById(authorId)];
             case 1:
                 author = _d.sent();

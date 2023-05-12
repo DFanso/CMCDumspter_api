@@ -90,12 +90,12 @@ var uploadFileToS3 = function (filePath, key) {
 exports.createIncident = [
     upload.single("image"),
     function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-        var _a, name_1, address, description, incident, savedIncident, newImagePath, s3URL, error_1;
+        var _a, name_1, address, description, lat, long, incident, savedIncident, newImagePath, s3URL, error_1;
         return __generator(this, function (_b) {
             switch (_b.label) {
                 case 0:
                     _b.trys.push([0, 4, 5, 6]);
-                    _a = req.body, name_1 = _a.name, address = _a.address, description = _a.description;
+                    _a = req.body, name_1 = _a.name, address = _a.address, description = _a.description, lat = _a.lat, long = _a.long;
                     if (!req.file) {
                         return [2 /*return*/, res.status(400).json({ error: "No image file provided." })];
                     }
@@ -103,6 +103,8 @@ exports.createIncident = [
                         name: name_1,
                         address: address,
                         description: description,
+                        lat: lat,
+                        long: long,
                         imagePath: req.file.path,
                     });
                     return [4 /*yield*/, incident.save()];
@@ -143,7 +145,6 @@ exports.createIncident = [
         });
     }); },
 ];
-// ... (the rest of your controller code)
 var getIncidentById = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var incident, error_2;
     return __generator(this, function (_a) {

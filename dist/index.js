@@ -26,7 +26,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.app = void 0;
+exports.server = exports.app = void 0;
 var express_1 = __importDefault(require("express"));
 var mongoose = __importStar(require("mongoose"));
 var dotenv_1 = __importDefault(require("dotenv"));
@@ -54,6 +54,8 @@ app.use("/api/article", articleRoutes_1.default);
 app.use("/api/incident", incidentRoutes_1.default);
 app.use(errorMiddleware_1.errorMiddleware);
 var port = process.env.PORT;
-app.listen(port, function () {
+var server = app.listen(port, function () {
     console.log("Server running at ".concat(port));
 });
+exports.server = server;
+exports.default = server;
